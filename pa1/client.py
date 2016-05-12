@@ -21,7 +21,7 @@ def recv_end(the_socket):
                 total_data.append(data[:data.find(End)])
                 break
             total_data.append(data)
-            if len(total_data)>1:
+            if len(total_data)>1: 
                 #check if end_of_data was split
                 last_pair=total_data[-2]+total_data[-1]
                 if End in last_pair:
