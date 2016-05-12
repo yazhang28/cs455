@@ -26,7 +26,7 @@ def recv_end(the_socket):
                 last_pair=total_data[-2]+total_data[-1]
                 if End in last_pair:
                     total_data[-2]=last_pair[:last_pair.find(End)]
-                    total_data.pop()
+                    total_data.pop() 
                     break
     return b''.join(total_data)
 
