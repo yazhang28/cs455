@@ -1,0 +1,47 @@
+Yao Zhang, yazhang@bu.edu
+CS455, Fall 2015
+pa1 part 1 documentation
+
+Pa1 part 1 record of exchange
+
+Compile instructions for client.py and server.py:
+client.py: python3 client.py
+server.py: python3 server.py 
+(server must be run first in order for client to work)
+
+CLIENT RUNNING ON: LOCAL MACHINE
+>>> ================================ RESTART ================================
+>>> 
+Please enter the hostname or IP address of the server: localhost
+Please enter the port number of the server: 12000
+Attempting to connect...
+Input message: hello world
+hello world
+Closing client connection...
+>>>
+
+SERVER RUNNING ON: LOCAL MACHINE
+>>> ================================ RESTART ================================
+>>> 
+Please enter the port number of the server: 12000
+The server is ready to receive
+
+CLIENT RUNNING ON: csa2.bu.edu 
+
+[yazhang@csa2 pa1]$ python3 client.py
+Please enter the hostname or IP address of the server: csa3.bu.edu
+Please enter the port number of the server: 58763
+Attempting to connect...
+Input message: Hello World
+Hello World
+Closing client connection...
+[yazhang@csa2 pa1]$
+
+SERVER RUNNING ON: csa3.bu.edu 
+
+[yazhang@csa3 pa1]$ python3 server.py 
+Please enter the port number of the server: 58763
+The server is ready to receive
+
+Overall design and functionality for part 1 (client.py & server.py):
+I wrote the server and client in different files.  Server and client may run on different machines. Client takes user input for ip address and port number.  Client does error handling in the case user inputs the port number in the wrong format (i.e. inputting a string instead of a number).  The client is able to do this by converting the string into an int.  The client also handles the case of failing to establishing connection with server.  Upon failing client will ask user to input ip and port number again until it is able to connect.  The server does this check also.  When TCP connection is successful, client asks for user input and creates a socket.  The client then sends the string (but first converting it to a byte object and adds a ‘\n’ end delimiter to mark the end of the string when server receives it) through a socket.  ‘\n’ is made sure that the server receives all of the string instead of just retrieving the first byte before echoing it back.  Client receives message from server, converts the byte object to a string and prints it to the screen before closing connection.  Server remains open.  

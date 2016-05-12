@@ -1,0 +1,173 @@
+﻿Yao Zhang, yazhang@bu.edu
+CS455, Fall 2015
+pa1 part 2 documentation
+
+Pa1 part 2 record of exchange: 
+
+Compile instructions for (extended_client.py & extended_server.py):
+extended_client.py: python3 extended_client.py
+extended_server.py: python3 extended_client.py
+(server must be run first in order for client to work)
+
+CLIENT RUNNING ON: local machine
+
+>>> 
+Please enter the hostname or IP address of the server: localhost
+Please enter the port number of the server: 12000
+Attempting to connect...
+Connection setup message in the following format: 
+<MEASUREMENT TYPE><WS><NUMBER OF PROBES><WS><MESSAGE SIZE><WS><SERVER DELAY>
+
+<MEASUREMENT TYPE> : rtt or tput
+<NUMBER OF PROBES> : an integer value of at least 1 or greater
+<MESSAGE SIZE> : an integer value of at least 1 or greater
+<SERVER DELAY> : an integer.
+<WS> : whitespace
+
+Input connection setup message: rtt 10 0 0
+404 ERROR : Invalid Connection Setup Message
+Would you like to start a new experiment? Enter yes or no: no
+Server connection closed. 
+404 ERROR : Invalid Connection Setup Message
+Closing client connection...
+>>>
+
+SERVER RUNNING ON: local machine
+
+>>> 
+Please enter the port number of the server: 12000
+The server is ready to receive
+Closing connection...
+>>>
+
+CLIENT RUNNING ON: csa2.bu.edu 
+
+[yazhang@csa2 pa1]$ python3 extended_client.py
+Please enter the hostname or IP address of the server: csa3.bu.edu
+Please enter the port number of the server: 58764
+Attempting to connect...
+Connection setup message in the following format:
+<MEASUREMENT TYPE><WS><NUMBER OF PROBES><WS><MESSAGE SIZE><WS><SERVER DELAY>
+
+<MEASUREMENT TYPE> : rtt or tput
+<NUMBER OF PROBES> : an integer value of at least 1 or greater
+<MESSAGE SIZE> : an integer value of at least 1 or greater
+<SERVER DELAY> : an integer.
+<WS> : whitespace
+
+Input connection setup message: rtt 0 0 0
+404 ERROR : Invalid Connection Setup Message
+Would you like to start a new experiment? Enter yes or no: no
+Server connection closed.
+404 ERROR : Invalid Connection Setup Message
+Closing client connection...
+[yazhang@csa2 pa1]$
+
+SERVER RUNNING ON: csa3.bu.edu 
+
+[yazhang@csa3 pa1]$ python3 extended_server.py
+Please enter the port number of the server: 58764
+The server is ready to receive
+Closing connection...
+
+Part 2 overall design & functionality, limitations & extensions:
+
+For part 2, I extended the code from part 1 and renamed the files to extended_client and extended_server. The client has the same basic functionality as in part 1 with added features.  Upon successful TCP connection, client asks user for connection setup message and checks for format.  This is done so that when logging in info, there won’t be any valuetype errors. If csp message is in the correct format, server sends OK which the client retrieves and moves to the measuring phase.  If server sends OK client proceeds to measuring phase, else it skips to termination phase.  The client assigns a random byte string each time it sends out a probe.  I decided not to use fixed arbitrary byte strings because I felt that randomness would provide a better data set for graphing instead of just sending the same string over and over again.  Client sends the probes and prints the Round Trip Time or the Throughput based on the measure type user specified in the connection setup phase.  In the case that the connection setup message produced 404 error the client asks the user if they want to conduct a new experiment or quit.  Here I added features for better user experience.  In the case the user wanted to conduct a new experiment and there is 404 error from csp phase, the client first notifies the user that connection on the server side closed and that they must restart the server again before looping back to the beginning where the user inputs IP address and port.  In the case where there is 404 error and user wanted to quit, the client notifies that server connection closed and closes the client connection without making user send termination message to server.  This helps avoid ConnectionResetError that is raised when one of the connections is closed and the client or server attempts to send something through the socket.  If there is no 404 error and user wanted to close connection, then the client asks user to input t for termination message.  For sending messages I was unable to find a way to send multiple messages though one socket and maintaining an open connection so I decided to create a new socket each time data needed to be sent.  This has a big impact on overhead than having an open connection on the client side because the client and server has to reestablish connection each time data needs to be sent.
+
+For building the graph of RTT and Throughput, I sent 100 probe messages for each message size (100, 200, 400, 800, 1000, 2000, 4000, 8000, 16000, 32000) and conducted the experiment 10 times for each before taking the average of each message size.  I assumed 1K = 1000 bytes.  I ran the experiments on csa2 and csa3, the client ran on csa2, and the server would ran on csa3.  On my own machine (windows x86) I ran server and client on localhost. The experiments conducted led to the find that for TCP as the message size increased throughput increases.  For message sizes 1000, 2000, and 4000, throughput shows a dramatic rise.  However as the message size became increasing large, from 8000 to 16000 to 32000 throughput rise slowed.  Round Trip Time for messages as they get bigger expectantly got long. As the response time with 0 delay very small, the propagation delay dominates and latency increases dramatically.  If there is delay on the server side, it takes longer time for the message to be received by the client.  For throughput the rate of transfer would of course decrease because RTT becomes a bigger variable and throughput = sixe/rtt.
+
+                  Round Trip Time As Function of Payload (0 delay)
+  Round Trip Time (ms)
+    2.8 ++------+------+-------+-------+------+-------+-------+------+------++
+        +       +      +       +       +      +       +     "RTT.txt"+**A****A
+    2.7 ++                                                                **++
+        |                                                               **   |
+    2.6 ++                                                            **    ++
+        |                                                           **       |
+    2.5 ++                                                        **        ++
+        |                                                       **           |
+    2.4 ++                                               *****A*            ++
+        |                                      **********                    |
+    2.3 ++                           **********                             ++
+        |       A**************A*****                                        |
+    2.2 ++    **                                                            ++
+        |    *                                                               |
+    2.1 ++  *                                                               ++
+        | **                                                                 |
+      2 +*                                                                  ++
+        A       +      +       +       +      +       +       +      +       +
+    1.9 ++------+------+-------+-------+------+-------+-------+------+------++
+       100     200    300     400     500    600     700     800    900    1000
+                                   Payload (bytes)  
+								   
+                     Throughput As function of Payload (0 delay)
+  Throughput (kbps)
+    3500 ++--------+--------+---------+---------+---------+--------+--------++
+         +         +        +         +         +         +"TPUT.txt" **A*** +
+         |                                                        *****A     |
+    3000 ++                                             **********          ++
+         |                                    **********                     |
+    2500 ++                            *A*****                              ++
+         |                         ****                                      |
+         |                     ****                                          |
+    2000 ++                ****                                             ++
+         |              *A*                                                  |
+    1500 ++          ***                                                    ++
+         |         **                                                        |
+         |       A*                                                          |
+    1000 ++    **                                                           ++
+         |    *                                                              |
+     500 ++ *A                                                              ++
+         | A                                                                 |
+         +         +        +         +         +         +        +         +
+       0 ++--------+--------+---------+---------+---------+--------+--------++
+         0        5000    10000     15000     20000     25000    30000    35000
+                                    Payload (bytes) 
+									
+                   Throughput As function of Payload (1 sec delay)
+  Throughput (kbps)
+    160 ++--------+---------+---------+--------+---------+---------+--*A----++
+        +         +         +         +        +     "TPUT_delay.txt"***A*** +
+    140 ++                                                     ***          ++
+        |                                                  ****              |
+    120 ++                                              ***                 ++
+        |                                            ***                     |
+        |                                        ****                        |
+    100 ++                                    ***                           ++
+        |                                 ****                               |
+     80 ++                             *A*                                  ++
+        |                           ***                                      |
+     60 ++                      ****                                        ++
+        |                    ***                                             |
+     40 ++                ***                                               ++
+        |             **A*                                                   |
+        |         ****                                                       |
+     20 ++    **A*                                                          ++
+        + A*A*    +         +         +        +         +         +         +
+      0 ++--------+---------+---------+--------+---------+---------+--------++
+        0        5000     10000     15000    20000     25000     30000    35000
+                                   Payload (bytes) 
+								   
+                          TPUT (0 delay) & TPUT (1 sec delay)
+  Throughput (kbps)
+    3500 ++--------+--------+---------+---------+---------+--------+--------++
+         +         +        +         +         +         +"TPUT.txt"   A    +
+         |                                           "TPUT_delay.txt" #AB### |
+    3000 ++                                                                 ++
+         |                                                                   |
+    2500 ++                             A                                   ++
+         |                                                                   |
+         |                                                                   |
+    2000 ++                                                                 ++
+         |               A                                                   |
+    1500 ++                                                                 ++
+         |                                                                   |
+         |       A                                                           |
+    1000 ++                                                                 ++
+         |                                                                   |
+     500 ++  A                                                              ++
+         | A                                                                 |
+         +         +        +         +         +       ###############B     +
+       0 ++B#B###B#######B##############B###############--+--------+--------++
+         0        5000    10000     15000     20000     25000    30000    35000
+                                    Payload (bytes)
