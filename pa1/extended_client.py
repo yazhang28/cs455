@@ -252,7 +252,7 @@ while True:
             print(csp_retrieved_str)
             print('Closing client connection...')
             clientSocket.close()
-            break
+            break 
         
     # the case where server connection is still open but user no longer wants to conduct experiments
     else:
