@@ -20,7 +20,7 @@ hello world
 Closing client connection...
 >>>
 
-SERVER RUNNING ON: LOCAL MACHINE
+SERVER RUNNING ON: LOCAL MACHINE 
 >>> ================================ RESTART ================================
 >>> 
 Please enter the port number of the server: 12000
